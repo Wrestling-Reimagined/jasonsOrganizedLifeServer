@@ -9,6 +9,7 @@ export const ResetPasswordPage = () => {
   const { showToast, withSplash } = useFeedback();
   const [token, setToken] = useState("");
   const [password, setPassword] = useState("");
+  const [specialCode, setSpecialCode] = useState("");
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -16,7 +17,7 @@ export const ResetPasswordPage = () => {
       await withSplash("Updating password...", () =>
         apiRequest<{ message: string }>("/auth/reset-password", {
           method: "POST",
-          body: { token, password },
+          body: { token, password, specialCode },
           authenticated: false,
         }),
       );
@@ -46,6 +47,12 @@ export const ResetPasswordPage = () => {
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+          />
+          <TextField
+            label="Special code"
+            required
+            value={specialCode}
+            onChange={(event) => setSpecialCode(event.target.value)}
           />
           <Button type="submit" variant="contained">
             Update password

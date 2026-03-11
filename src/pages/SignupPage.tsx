@@ -11,6 +11,7 @@ export const SignupPage = () => {
   const { showToast, withSplash } = useFeedback();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [specialCode, setSpecialCode] = useState("");
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -18,7 +19,7 @@ export const SignupPage = () => {
       const result = await withSplash("Creating account...", () =>
         apiRequest<{ token: string; user: { id: number; email: string } }>("/auth/signup", {
           method: "POST",
-          body: { email, password },
+          body: { email, password, specialCode },
           authenticated: false,
         }),
       );
@@ -51,6 +52,12 @@ export const SignupPage = () => {
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+          />
+          <TextField
+            label="Special code"
+            required
+            value={specialCode}
+            onChange={(event) => setSpecialCode(event.target.value)}
           />
           <Button type="submit" variant="contained">
             Sign up
