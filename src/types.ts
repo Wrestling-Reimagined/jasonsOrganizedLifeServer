@@ -26,14 +26,14 @@ export type MealConsumption = {
   mealEventId: number;
   consumerName: string;
   consumedAt: string;
-  rating: number;
+  rating: number | null;
 };
 
 export type RecipeRating = {
   id: number;
   consumerName: string;
   consumedAt: string;
-  rating: number;
+  rating: number | null;
   mealTitle: string;
 };
 

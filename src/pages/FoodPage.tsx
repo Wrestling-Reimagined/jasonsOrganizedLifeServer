@@ -3,11 +3,14 @@ import {
   Button,
   Collapse,
   Divider,
+  FormControl,
+  InputLabel,
   List,
   ListItem,
   ListItemText,
   MenuItem,
   Paper,
+  Select,
   Stack,
   Tab,
   Tabs,
@@ -41,7 +44,6 @@ export const FoodPage = () => {
   const [consumptionMealEventId, setConsumptionMealEventId] = useState("");
   const [consumerName, setConsumerName] = useState("");
   const [consumedAt, setConsumedAt] = useState(dayjs().format("YYYY-MM-DDTHH:mm"));
-  const [rating, setRating] = useState("7");
   const [activeTab, setActiveTab] = useState(0);
   const [showAddRecipeForm, setShowAddRecipeForm] = useState(false);
 
@@ -194,15 +196,29 @@ export const FoodPage = () => {
             mealEventId: Number(consumptionMealEventId),
             consumerName,
             consumedAt: new Date(consumedAt).toISOString(),
-            rating: Number(rating),
           },
         }),
       );
       setConsumptionMealEventId("");
       setConsumerName("");
-      setRating("7");
       await loadAll();
       showToast("Consumption recorded.", "success");
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    }
+  };
+
+  const updateConsumptionRating = async (consumptionId: number, rating: number) => {
+    try {
+      await apiRequest(`/meals/consumptions/${consumptionId}`, {
+        method: "PATCH",
+        body: { rating },
+      });
+      setConsumptions((prev) =>
+        prev.map((c) => (c.id === consumptionId ? { ...c, rating } : c)),
+      );
+      await loadAll();
+      showToast("Rating updated.", "success");
     } catch (err) {
       showToast((err as Error).message, "error");
     }
@@ -307,7 +323,8 @@ export const FoodPage = () => {
                         <Stack spacing={0.75}>
                           {(recipeRatings[recipe.id] ?? []).map((ratingEntry) => (
                             <Typography key={ratingEntry.id} variant="body2">
-                              {ratingEntry.rating}/10 by {ratingEntry.consumerName} on{" "}
+                              {ratingEntry.rating != null ? `${ratingEntry.rating}/10` : "Not rated"} by{" "}
+                              {ratingEntry.consumerName} on{" "}
                               {dayjs(ratingEntry.consumedAt).format("MMM D, YYYY h:mm A")} ({ratingEntry.mealTitle})
                             </Typography>
                           ))}
@@ -430,22 +447,6 @@ export const FoodPage = () => {
                 onChange={(e) => setConsumerName(e.target.value)}
               />
               <TextField
-                select
-                label="Meal quality (1-10)"
-                required
-                value={rating}
-                onChange={(e) => setRating(e.target.value)}
-              >
-                {Array.from({ length: 10 }, (_, index) => {
-                  const score = String(index + 1);
-                  return (
-                    <MenuItem key={score} value={score}>
-                      {score}
-                    </MenuItem>
-                  );
-                })}
-              </TextField>
-              <TextField
                 label="Consumed at"
                 type="datetime-local"
                 value={consumedAt}
@@ -464,11 +465,33 @@ export const FoodPage = () => {
             <Divider sx={{ mb: 2 }} />
             <Stack spacing={1}>
               {consumptions.map((entry) => (
-                <Box key={entry.id}>
-                  <Typography variant="body2">
-                    {getMealTitle(entry.mealEventId)} consumed by {entry.consumerName} (Rating: {entry.rating}/10) on{" "}
+                <Box key={entry.id} sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+                  <Typography variant="body2" sx={{ flex: "1 1 auto" }}>
+                    {getMealTitle(entry.mealEventId)} consumed by {entry.consumerName} on{" "}
                     {dayjs(entry.consumedAt).format("MMM D, YYYY h:mm A")}
                   </Typography>
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>Rating</InputLabel>
+                    <Select
+                      label="Rating"
+                      value={entry.rating ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value as number | "";
+                        if (value !== "") {
+                          updateConsumptionRating(entry.id, value);
+                        }
+                      }}
+                    >
+                      <MenuItem value="">
+                        <em>Not rated</em>
+                      </MenuItem>
+                      {Array.from({ length: 10 }, (_, i) => i + 1).map((score) => (
+                        <MenuItem key={score} value={score}>
+                          {score}/10
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Box>
               ))}
             </Stack>

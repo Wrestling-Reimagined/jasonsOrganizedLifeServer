@@ -3,7 +3,7 @@ import { clearToken, getToken } from "../lib/storage";
 const baseUrl = import.meta.env.VITE_API_URL ?? "/api";
 
 type RequestOptions = {
-  method?: "GET" | "POST" | "DELETE";
+  method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: unknown;
   authenticated?: boolean;
 };
